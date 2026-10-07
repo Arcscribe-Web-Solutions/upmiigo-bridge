@@ -1,0 +1,6 @@
+/upmiigo-bridge
+/config.yaml
+/registration.yaml
+*.db
+*.db-*
+logs/
