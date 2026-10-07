@@ -52,7 +52,11 @@ func (c *client) portalKey(conversationID string) networkid.PortalKey {
 func (c *client) Connect(ctx context.Context) {
 	log := zerolog.Ctx(ctx)
 	c.login.BridgeState.Send(status.BridgeState{StateEvent: status.StateConnecting})
-	if _, err := c.api.Me(ctx); err != nil {
+	me, err := c.api.Me(ctx)
+	if err == nil {
+		c.refreshProfile(ctx, me)
+	}
+	if err != nil {
 		if upmiigo.IsUnauthorized(err) {
 			c.login.BridgeState.Send(status.BridgeState{
 				StateEvent: status.StateBadCredentials,
@@ -73,7 +77,73 @@ func (c *client) Connect(ctx context.Context) {
 	c.stop = cancel
 	c.loggedIn = true
 	c.mu.Unlock()
+	c.refreshSpace(ctx)
 	go c.run(loopCtx)
+}
+
+// refreshProfile keeps the account's name and picture (shown on the account in Beeper) in step with up mii go.
+func (c *client) refreshProfile(ctx context.Context, me *upmiigo.User) {
+	profile := c.login.RemoteProfile
+	changed := profile.Name != me.Name() || profile.Username != me.Username
+	profile.Name, profile.Username = me.Name(), me.Username
+	avatarKey := ""
+	if me.AvatarURL != nil {
+		avatarKey = *me.AvatarURL
+	}
+	meta := c.login.Metadata.(*UserLoginMetadata)
+	if avatarKey != meta.AvatarSource {
+		profile.Avatar = ""
+		if avatarKey != "" {
+			if data, mimeType, err := c.api.Download(ctx, avatarKey); err == nil {
+				if mxc, _, err := c.main.Bridge.Bot.UploadMedia(ctx, "", data, "avatar"+extFor(mimeType), mimeType); err == nil {
+					profile.Avatar = mxc
+				} else {
+					zerolog.Ctx(ctx).Warn().Err(err).Msg("Couldn't upload your profile picture")
+				}
+			}
+		}
+		meta.AvatarSource = avatarKey
+		changed = true
+	}
+	if changed {
+		c.login.RemoteProfile = profile
+		c.login.RemoteName = "@" + me.Username
+		if err := c.login.Save(ctx); err != nil {
+			zerolog.Ctx(ctx).Warn().Err(err).Msg("Couldn't save the login profile")
+		}
+	}
+}
+
+// refreshSpace updates the name and icon of this login's personal space (the sidebar group in Beeper).
+// bridgev2 only sets them when the space is first created, so spaces made by an older version keep a
+// stale name and no icon. This runs once per spaceVersion.
+func (c *client) refreshSpace(ctx context.Context) {
+	meta := c.login.Metadata.(*UserLoginMetadata)
+	if c.login.SpaceRoom == "" || meta.SpaceVersion >= spaceVersion || c.main.iconMXC == "" {
+		return
+	}
+	log := zerolog.Ctx(ctx)
+	bot := c.main.Bridge.Bot
+	name := c.main.GetName().DisplayName
+	states := []struct {
+		evtType event.Type
+		content any
+	}{
+		{event.StateRoomName, &event.RoomNameEventContent{Name: fmt.Sprintf("%s (%s)", name, c.login.RemoteName)}},
+		{event.StateTopic, &event.TopicEventContent{Topic: fmt.Sprintf("Your %s bridged chats - %s", name, c.login.RemoteName)}},
+		{event.StateRoomAvatar, &event.RoomAvatarEventContent{URL: c.main.iconMXC}},
+	}
+	for _, st := range states {
+		if _, err := bot.SendState(ctx, c.login.SpaceRoom, st.evtType, "", &event.Content{Parsed: st.content}, time.Now()); err != nil {
+			log.Warn().Err(err).Str("event_type", st.evtType.Type).Msg("Couldn't update the personal space")
+			return
+		}
+	}
+	meta.SpaceVersion = spaceVersion
+	if err := c.login.Save(ctx); err != nil {
+		log.Warn().Err(err).Msg("Couldn't save the login after updating the space")
+	}
+	log.Info().Msg("Updated the personal space's name and icon")
 }
 
 func (c *client) Disconnect() {

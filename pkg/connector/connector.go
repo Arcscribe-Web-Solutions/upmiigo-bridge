@@ -39,7 +39,14 @@ type UserLoginMetadata struct {
 	Token string `json:"token"`
 	// Where the event stream got to (the API's `next` value), so nothing is missed across restarts.
 	Cursor string `json:"cursor"`
+	// Which version of the network name and icon this login's Beeper space has (see refreshSpace).
+	SpaceVersion int `json:"space_version,omitempty"`
+	// The up mii go avatar URL that RemoteProfile.Avatar was uploaded from, to spot changes.
+	AvatarSource string `json:"avatar_source,omitempty"`
 }
+
+// Bump to make every login's personal space pick up a changed name or icon.
+const spaceVersion = 1
 
 func (c *Connector) Init(br *bridgev2.Bridge) {
 	c.Bridge = br
