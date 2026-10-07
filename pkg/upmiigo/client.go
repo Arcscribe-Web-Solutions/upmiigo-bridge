@@ -77,7 +77,9 @@ type APIError struct {
 	Message string `json:"message"`
 }
 
-func (e *APIError) Error() string { return fmt.Sprintf("up mii go: %s (%d): %s", e.Code, e.Status, e.Message) }
+func (e *APIError) Error() string {
+	return fmt.Sprintf("up mii go: %s (%d): %s", e.Code, e.Status, e.Message)
+}
 
 // IsUnauthorized reports whether the token was rejected (revoked or invalid).
 func IsUnauthorized(err error) bool {

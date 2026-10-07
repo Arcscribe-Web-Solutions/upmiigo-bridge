@@ -18,7 +18,7 @@ const loginFlowToken = "token"
 func (c *Connector) GetLoginFlows() []bridgev2.LoginFlow {
 	return []bridgev2.LoginFlow{{
 		Name:        "Bridge token",
-		Description: "Paste a token from up mii go: Settings → Beeper bridge → Make a token.",
+		Description: "Paste a token from Up Mii Go: Settings → Beeper bridge → Make a token.",
 		ID:          loginFlowToken,
 	}}
 }
@@ -41,7 +41,7 @@ func (t *tokenLogin) Start(ctx context.Context) (*bridgev2.LoginStep, error) {
 	return &bridgev2.LoginStep{
 		Type:         bridgev2.LoginStepTypeUserInput,
 		StepID:       "co.uk.upmiigo.token",
-		Instructions: "Make a token on up mii go (Settings → Beeper bridge), then paste it here.",
+		Instructions: "Make a token on Up Mii Go (Settings → Beeper bridge), then paste it here.",
 		UserInputParams: &bridgev2.LoginUserInputParams{
 			Fields: []bridgev2.LoginInputDataField{{
 				Type:        bridgev2.LoginInputFieldTypeToken,
@@ -62,9 +62,9 @@ func (t *tokenLogin) SubmitUserInput(ctx context.Context, input map[string]strin
 	me, err := api.Me(ctx)
 	if err != nil {
 		if upmiigo.IsUnauthorized(err) {
-			return nil, fmt.Errorf("that token didn't work: make a new one in up mii go Settings → Beeper bridge")
+			return nil, fmt.Errorf("that token didn't work: make a new one in Up Mii Go Settings → Beeper bridge")
 		}
-		return nil, fmt.Errorf("couldn't reach up mii go: %w", err)
+		return nil, fmt.Errorf("couldn't reach Up Mii Go: %w", err)
 	}
 	login, err := t.user.NewLogin(ctx, &database.UserLogin{
 		ID:         networkid.UserLoginID(me.ID),
@@ -82,7 +82,7 @@ func (t *tokenLogin) SubmitUserInput(ctx context.Context, input map[string]strin
 	return &bridgev2.LoginStep{
 		Type:         bridgev2.LoginStepTypeComplete,
 		StepID:       "co.uk.upmiigo.complete",
-		Instructions: fmt.Sprintf("Signed in as @%s. Your up mii go conversations will appear shortly.", me.Username),
+		Instructions: fmt.Sprintf("Signed in as @%s. Your Up Mii Go conversations will appear shortly.", me.Username),
 		CompleteParams: &bridgev2.LoginCompleteParams{
 			UserLoginID: login.ID,
 			UserLogin:   login,

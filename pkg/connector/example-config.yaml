@@ -1,4 +1,4 @@
-# The up mii go site to bridge. Change this only if you run your own copy of the site.
+# The Up Mii Go site to bridge. Change this only if you run your own copy of the site.
 server_url: https://upmiigo.co.uk
 # How many recent messages to bring in for each conversation the first time you log in (max 100).
 initial_messages: 30

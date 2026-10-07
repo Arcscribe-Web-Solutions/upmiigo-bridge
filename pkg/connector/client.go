@@ -57,7 +57,7 @@ func (c *client) Connect(ctx context.Context) {
 			c.login.BridgeState.Send(status.BridgeState{
 				StateEvent: status.StateBadCredentials,
 				Error:      "upmiigo-token-revoked",
-				Message:    "Your up mii go token was revoked. Make a new one in Settings → Beeper bridge and log in again.",
+				Message:    "Your Up Mii Go token was revoked. Make a new one in Settings → Beeper bridge and log in again.",
 			})
 			return
 		}
@@ -131,7 +131,7 @@ func (c *client) run(ctx context.Context) {
 				c.login.BridgeState.Send(status.BridgeState{
 					StateEvent: status.StateBadCredentials,
 					Error:      "upmiigo-token-revoked",
-					Message:    "Your up mii go token was revoked. Make a new one in Settings → Beeper bridge and log in again.",
+					Message:    "Your Up Mii Go token was revoked. Make a new one in Settings → Beeper bridge and log in again.",
 				})
 				return
 			}
@@ -264,7 +264,7 @@ func (c *client) convertMessage(ctx context.Context, portal *bridgev2.Portal, in
 	if err != nil {
 		// Don't lose the message over a failed download: say what it was.
 		zerolog.Ctx(ctx).Warn().Err(err).Str("message_id", msg.ID).Msg("Couldn't download photo")
-		body := "[Photo, open up mii go to see it]"
+		body := "[Photo, open Up Mii Go to see it]"
 		if msg.Body != "" {
 			body += "\n" + msg.Body
 		}
@@ -345,7 +345,7 @@ func (c *client) HandleMatrixMessage(ctx context.Context, msg *bridgev2.MatrixMe
 	if err != nil {
 		var apiErr *upmiigo.APIError
 		if errors.As(err, &apiErr) {
-			return nil, fmt.Errorf("up mii go refused it: %s", apiErr.Message)
+			return nil, fmt.Errorf("Up Mii Go refused it: %s", apiErr.Message)
 		}
 		return nil, err
 	}

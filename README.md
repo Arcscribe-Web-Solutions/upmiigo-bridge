@@ -2,7 +2,8 @@
 
 A Matrix bridge for [up mii go](https://upmiigo.co.uk) direct messages, built on
 [mautrix-go](https://github.com/mautrix/go)'s bridgev2. Run it with Beeper's bridge manager to get your
-up mii go chats in [Beeper](https://www.beeper.com), next to everything else.
+up mii go chats in [Beeper](https://www.beeper.com), next to everything else. In Beeper the network shows as
+**Up Mii Go** with the up mii go logo (uploaded to your homeserver the first time the bridge starts).
 
 **What's bridged:** one-to-one messages both ways, photos (with captions) both ways, read receipts both
 ways ("Seen" on up mii go), member names, avatars and verified ticks. The last 30 messages of each
